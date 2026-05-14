@@ -19,7 +19,7 @@ export default function App() {
   const [activeQ, setActiveQ] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // مستشعر ذكي لحجم الشاشة لضبط حجم الخط فوراً
+  // مستشعر ذكي لمقاس الشاشة لضبط الخطوط فوراً
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
@@ -66,12 +66,18 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen fixed inset-0 bg-[#020617] text-white overflow-hidden flex flex-col font-sans select-none" dir="rtl">
+      <style>{`
+        @import url('[https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Amiri:wght@700&display=swap](https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Amiri:wght@700&display=swap)');
+        .classic-title { font-family: 'Amiri', serif; }
+        .glass-box { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+      `}</style>
+
       {view === 'START' && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8 animate-in fade-in">
-          <h1 className="text-[clamp(3rem,10vw,6rem)] font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-500 drop-shadow-2xl text-center">سباق المعرفة</h1>
-          <div className="w-full max-w-md bg-slate-900/80 p-8 rounded-[2.5rem] border border-white/10 space-y-5 shadow-2xl">
-            <input className="w-full bg-slate-800 border-2 border-white/5 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-blue-500 transition-all" placeholder="المتسابق الأول" value={pNames.p1} onChange={e => setPNames({...pNames, p1: e.target.value})} />
-            <input className="w-full bg-slate-800 border-2 border-white/5 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-blue-500 transition-all" placeholder="المتسابق الثاني" value={pNames.p2} onChange={e => setPNames({...pNames, p2: e.target.value})} />
+          <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-500 drop-shadow-2xl text-center classic-title">سباق المعرفة</h1>
+          <div className="w-full max-w-md glass-box p-8 rounded-[2.5rem] space-y-5 shadow-2xl">
+            <input className="w-full bg-slate-800 border-2 border-white/5 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-blue-500" placeholder="المتسابق الأول" value={pNames.p1} onChange={e => setPNames({...pNames, p1: e.target.value})} />
+            <input className="w-full bg-slate-800 border-2 border-white/5 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-blue-500" placeholder="المتسابق الثاني" value={pNames.p2} onChange={e => setPNames({...pNames, p2: e.target.value})} />
             <button onClick={handleStartGame} className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-2xl shadow-xl active:scale-95 transition-all">ابدأ التحدي</button>
           </div>
           <p className="text-blue-400 font-bold tracking-widest uppercase">إعداد: محمد القرني</p>
@@ -111,7 +117,7 @@ export default function App() {
                         dominantBaseline="central" 
                         fill="white" 
                         fontWeight="900"
-                        fontSize={isMobile ? "42" : "24"} 
+                        fontSize={isMobile ? "45" : "26"} 
                         style={{ pointerEvents: 'none', filter: 'drop-shadow(0 2px 4px black)' }}
                       >
                         {c.label}
