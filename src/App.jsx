@@ -7,7 +7,7 @@ const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 const TOPICS = ['إسلاميات', 'جغرافيا', 'تاريخ', 'علوم', 'أدب', 'فن', 'رياضة', 'عامة'];
 
 // ==========================================
-// التنسيقات والتحسينات البصرية (تم إصلاح تأثير الماوس)
+// التنسيقات والتحسينات البصرية
 // ==========================================
 const CSS_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@700&display=swap');
@@ -53,18 +53,18 @@ const CSS_STYLES = `
   .input-field:focus { border-color: #3b82f6; background: rgba(30, 41, 59, 1); }
 
   .win-text-huge { font-size: clamp(2rem, 8vw, 8rem); font-weight: 900; }
-  .btn-match { font-size: clamp(1rem, 3vw, 1.5rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
+  .btn-match { font-size: clamp(1.2rem, 3.5vw, 1.2rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
   
+  /* ========== التعديل هنا (تكبير الخط) ========== */
   .hex-text { 
-    font-size: clamp(0.8rem, 2.5vmin, 1.5rem); 
+    font-size: clamp(1.2rem, 3.5vmin, 2rem); /* تم زيادة الحجم هنا */
     font-weight: 800; 
     fill: white;
     pointer-events: none;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
   }
+  /* ============================================== */
 
-  /* ========== التعديل الجديد هنا ========== */
-  /* تم إيقاف التكبير (scale) واستبداله بتأثير التوهج والإضاءة لثبات الخلايا */
   .hex-group { 
     transition: filter 0.2s ease-out; 
     cursor: pointer;
@@ -72,7 +72,6 @@ const CSS_STYLES = `
   .hex-group:hover { 
     filter: brightness(1.4) drop-shadow(0 0 8px rgba(255,255,255,0.4)); 
   }
-  /* ======================================== */
 `;
 
 // ==========================================
