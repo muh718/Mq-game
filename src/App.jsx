@@ -55,24 +55,12 @@ const CSS_STYLES = `
   .win-text-huge { font-size: clamp(2rem, 8vw, 8rem); font-weight: 900; }
   .btn-match { font-size: clamp(1rem, 3vw, 1.5rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
   
-  /* ========== التعديل الجذري للخطوط (جوال + كمبيوتر) ========== */
+  /* تم إزالة حجم الخط من هنا ليتم التحكم به من داخل الرسمة نفسها لضمان الدقة */
   .hex-text { 
-    font-weight: 800; 
     fill: white;
     pointer-events: none;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-    /* الحجم الافتراضي (للجوال): يكون كبيراً ليملأ الخلية */
-    font-size: 32px; 
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.9));
   }
-
-  /* عندما تكون الشاشة أكبر من الجوال (آيباد وكمبيوتر) */
-  @media (min-width: 768px) {
-    .hex-text { 
-      /* الحجم للكمبيوتر: يكون أصغر بالنسبة للخلية حتى لا يبدو عملاقاً */
-      font-size: 22px; 
-    }
-  }
-  /* ============================================================== */
 
   .hex-group { 
     transition: filter 0.2s ease-out; 
@@ -305,7 +293,19 @@ export default function App() {
                     return (
                       <g key={c.id} className="hex-group" onClick={() => handleTileClick(c)}>
                         <polygon points={Array.from({length: 6}).map((_, i) => `${cx + HEX_RADIUS * Math.cos((Math.PI/180)*(60*i-30))},${cy + HEX_RADIUS * Math.sin((Math.PI/180)*(60*i-30))}`).join(' ')} fill={c.owner === 'P1' ? "#10b981" : c.owner === 'P2' ? "#ef4444" : "#1e293b"} stroke={c.owner ? "#ffffff" : "#475569"} strokeWidth="6" />
-                        {!c.owner && <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" className="hex-text">{c.label}</text>}
+                        {!c.owner && (
+                           // التعديل الجذري هنا: وضعنا حجم الخط وسُمكه داخل الرسمة مباشرة ليلتصق بها ويكبر ويصغر معها
+                          <text 
+                             x={cx} y={cy} 
+                             textAnchor="middle" 
+                             dominantBaseline="central" 
+                             className="hex-text"
+                             fontSize="38" 
+                             fontWeight="900"
+                          >
+                            {c.label}
+                          </text>
+                        )}
                       </g>
                     );
                   })}
