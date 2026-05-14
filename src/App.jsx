@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Trophy, RefreshCw, LogOut, Target, HelpCircle, Star, Zap, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Trophy, LogOut, Zap, ChevronRight } from 'lucide-react';
 import { QUESTIONS_DATABASE } from './questionsData';
 
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
+const TOPICS = ['إسلاميات', 'جغرافيا', 'تاريخ', 'علوم', 'أدب', 'فن', 'رياضة', 'عامة'];
+
 // ==========================================
-// التنسيقات والتحسينات البصرية (تجاوب 100% بدون تمرير)
+// التنسيقات والتحسينات البصرية (تم إصلاح تأثير الماوس)
 // ==========================================
 const CSS_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@700&display=swap');
@@ -17,10 +19,10 @@ const CSS_STYLES = `
     background-color: #020617;
     color: white;
     user-select: none;
-    overflow: hidden !important; /* منع التمرير نهائياً */
+    overflow: hidden !important; 
     position: fixed;
     width: 100vw;
-    height: 100dvh; /* dvh: مقاس دقيق لمتصفحات الجوال */
+    height: 100dvh; 
   }
 
   .classic-title { font-family: 'Amiri', serif; }
@@ -53,16 +55,24 @@ const CSS_STYLES = `
   .win-text-huge { font-size: clamp(2rem, 8vw, 8rem); font-weight: 900; }
   .btn-match { font-size: clamp(1rem, 3vw, 1.5rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
   
-  .hex-letter { 
-    font-size: clamp(2.5rem, 5vmin, 4.5rem); 
+  .hex-text { 
+    font-size: clamp(0.8rem, 2.5vmin, 1.5rem); 
     font-weight: 800; 
     fill: white;
     pointer-events: none;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
   }
 
-  .hex-group { transition: transform 0.2s ease-out; }
-  .hex-group:hover { transform: scale(1.03); }
+  /* ========== التعديل الجديد هنا ========== */
+  /* تم إيقاف التكبير (scale) واستبداله بتأثير التوهج والإضاءة لثبات الخلايا */
+  .hex-group { 
+    transition: filter 0.2s ease-out; 
+    cursor: pointer;
+  }
+  .hex-group:hover { 
+    filter: brightness(1.4) drop-shadow(0 0 8px rgba(255,255,255,0.4)); 
+  }
+  /* ======================================== */
 `;
 
 // ==========================================
@@ -76,10 +86,7 @@ const VERT_DIST = HEX_HEIGHT * 0.75;
 
 const VB_WIDTH = (GRID_SIZE * HEX_WIDTH) + (HEX_WIDTH / 2);
 const VB_HEIGHT = ((GRID_SIZE - 1) * VERT_DIST) + HEX_HEIGHT;
-// مساحة حرة لمنع قص أطراف الشبكة
 const VB_PADDING = 100; 
-
-const ARABIC_LETTERS = "أبتثجحخدذرزسشصضطظعغفقكلمنهوي".split("");
 
 export default function App() {
   const [view, setView] = useState('START'); 
@@ -109,11 +116,12 @@ export default function App() {
 
   const handleStartGame = () => {
     const newGrid = [];
-    const letters = shuffle(ARABIC_LETTERS);
+    const topicsList = shuffle([...TOPICS, ...TOPICS, ...TOPICS, ...TOPICS]); 
+    
     let idx = 0;
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
-        newGrid.push({ id: `${r}-${c}`, r, c, label: letters[idx % letters.length], owner: null });
+        newGrid.push({ id: `${r}-${c}`, r, c, label: topicsList[idx], owner: null });
         idx++;
       }
     }
@@ -150,9 +158,6 @@ export default function App() {
     return false;
   };
 
-  // ==========================================
-  // منطق جلب الأسئلة
-  // ==========================================
   const handleTileClick = (tile) => {
     if (tile.owner || roundWinner) return;
 
@@ -169,9 +174,14 @@ export default function App() {
       localStorage.setItem('quiz_history', JSON.stringify(history));
     }
 
-    let possibleQs = QUESTIONS_DATABASE.filter(q => !history[q.id]);
+    let possibleQs = QUESTIONS_DATABASE.filter(q => q.topic === tile.label && !history[q.id]);
+    
     if (possibleQs.length === 0) {
-      possibleQs = [...QUESTIONS_DATABASE];
+      possibleQs = QUESTIONS_DATABASE.filter(q => q.topic === tile.label);
+    }
+
+    if (possibleQs.length === 0) {
+        possibleQs = [{ id: "fallback", topic: tile.label, q: `لا توجد أسئلة حالياً في قسم (${tile.label})`, a: ["تخطي"] }];
     }
     
     const selectedQ = possibleQs[Math.floor(Math.random() * possibleQs.length)]; 
@@ -190,9 +200,11 @@ export default function App() {
     const newGrid = [...grid];
     const idx = newGrid.findIndex(t => t.id === activeQ.tile.id);
 
-    let history = JSON.parse(localStorage.getItem('quiz_history') || '{}');
-    history[activeQ.qId] = Date.now();
-    localStorage.setItem('quiz_history', JSON.stringify(history));
+    if (activeQ.qId !== "fallback") {
+        let history = JSON.parse(localStorage.getItem('quiz_history') || '{}');
+        history[activeQ.qId] = Date.now();
+        localStorage.setItem('quiz_history', JSON.stringify(history));
+    }
 
     if (isCorrect) {
       newGrid[idx].owner = turn;
@@ -217,12 +229,11 @@ export default function App() {
     <div className="w-screen h-[100dvh] fixed inset-0 flex flex-col bg-[#020617] overflow-hidden" dir="rtl">
       <style>{CSS_STYLES}</style>
 
-      {/* شاشة البداية */}
       {view === 'START' && (
         <div className="flex-1 w-full h-full flex flex-col items-center justify-center p-4 animate-in fade-in space-y-4 md:space-y-8 min-h-0">
           <div className="text-center space-y-2 shrink-0">
             <h1 className="text-[clamp(3.5rem,12vw,9rem)] leading-none classic-title font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-500 drop-shadow-2xl">
-              سباق الحروف
+              سباق المعرفة
             </h1>
             <p className="text-blue-300 font-bold text-[clamp(1rem,4vw,2rem)] tracking-widest uppercase m-0">
               محمد القرني
@@ -238,7 +249,6 @@ export default function App() {
         </div>
       )}
 
-      {/* شاشة اختيار الجولات */}
       {view === 'ROUND_SELECT' && (
         <div className="flex-1 w-full h-full flex flex-col items-center justify-center p-4 animate-in zoom-in space-y-4 md:space-y-8 min-h-0">
           <Trophy className="w-[15vh] h-[15vh] max-h-[140px] text-yellow-500 animate-bounce shrink-0" />
@@ -254,11 +264,9 @@ export default function App() {
         </div>
       )}
 
-      {/* شاشة اللعبة (الشبكة) */}
       {view === 'GAME' && (
         <div className="flex-1 flex flex-col w-full h-[100dvh] min-h-0 overflow-hidden">
           
-          {/* شريط اللاعبين (Header) */}
           <header className="shrink-0 h-[10vh] min-h-[60px] max-h-[100px] p-2 glass-box flex justify-between items-center z-50 border-b border-white/10 gap-2">
             <div className={`flex-1 h-full px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P1' ? 'ring-2 ring-emerald-500/30 bg-emerald-500/20' : 'opacity-40 grayscale'}`} style={{ borderColor: '#10b981' }}>
               <span className="text-[clamp(0.6rem,1.5vh,1rem)] font-black mb-1">{roundConfig.P1.label}</span>
@@ -273,7 +281,6 @@ export default function App() {
             </div>
           </header>
 
-          {/* مساحة الشبكة (Main) - تأخذ باقي الارتفاع بالضبط */}
           <main className="flex-1 min-h-0 w-full flex items-center justify-center relative bg-[#010409] overflow-hidden p-2">
             <svg viewBox={`${-VB_PADDING} ${-VB_PADDING} ${VB_WIDTH + VB_PADDING * 2} ${VB_HEIGHT + VB_PADDING * 2}`} className="w-full h-full object-contain drop-shadow-[0_0_40px_rgba(0,0,0,0.8)]">
                 <g className="neon-glow">
@@ -288,9 +295,9 @@ export default function App() {
                     const cx = (c.c * HEX_WIDTH) + xOff + (HEX_WIDTH / 2);
                     const cy = (c.r * VERT_DIST) + (HEX_HEIGHT / 2);
                     return (
-                      <g key={c.id} className="hex-group cursor-pointer" onClick={() => handleTileClick(c)}>
+                      <g key={c.id} className="hex-group" onClick={() => handleTileClick(c)}>
                         <polygon points={Array.from({length: 6}).map((_, i) => `${cx + HEX_RADIUS * Math.cos((Math.PI/180)*(60*i-30))},${cy + HEX_RADIUS * Math.sin((Math.PI/180)*(60*i-30))}`).join(' ')} fill={c.owner === 'P1' ? "#10b981" : c.owner === 'P2' ? "#ef4444" : "#1e293b"} stroke={c.owner ? "#ffffff" : "#475569"} strokeWidth="6" />
-                        {!c.owner && <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" className="hex-letter">{c.label}</text>}
+                        {!c.owner && <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" className="hex-text">{c.label}</text>}
                       </g>
                     );
                   })}
@@ -298,35 +305,31 @@ export default function App() {
             </svg>
           </main>
           
-          {/* شريط الإغلاق (Footer) */}
           <footer className="shrink-0 h-[8vh] min-h-[50px] max-h-[80px] flex items-center justify-center z-50">
              <button onClick={() => window.location.reload()} className="h-[70%] text-slate-400 text-[clamp(0.8rem,2vh,1.2rem)] font-bold px-6 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 transition flex items-center gap-2"><LogOut size={16}/> إنهاء المسابقة</button>
           </footer>
         </div>
       )}
 
-      {/* شاشة عرض السؤال (Modal) متلائمة 100% بدون سكرول */}
       {activeQ && (
         <div className="fixed inset-0 w-screen h-[100dvh] bg-black/98 z-[100] flex items-center justify-center p-3 md:p-6 animate-in fade-in backdrop-blur-3xl overflow-hidden">
           <div className="glass-box border-2 md:border-4 flex flex-col w-full h-full max-h-full md:max-h-[90vh] max-w-5xl rounded-[2rem] md:rounded-[4rem] overflow-hidden animate-in zoom-in" style={{ borderColor: turn === 'P1' ? '#10b981' : '#ef4444' }}>
             
-            {/* رأس السؤال */}
             <div className="shrink-0 h-[20%] min-h-[80px] bg-white/5 px-4 flex justify-between items-center border-b border-white/10">
-               <div className={`h-[70%] aspect-square rounded-[1rem] flex items-center justify-center font-black text-[clamp(2rem,6vh,4rem)] shadow-xl ${turn === 'P1' ? 'bg-emerald-600' : 'bg-rose-600'}`}>؟</div>
+               <div className={`h-[70%] px-6 rounded-[1rem] flex items-center justify-center font-black text-[clamp(1.5rem,4vh,3rem)] shadow-xl ${turn === 'P1' ? 'bg-emerald-600' : 'bg-rose-600'}`}>
+                 {activeQ.tile.label}
+               </div>
                <div className="text-[clamp(1.5rem,5vw,3rem)] font-black classic-title pr-4">سؤال التحدي</div>
             </div>
 
-            {/* محتوى السؤال والخيارات */}
             <div className="flex-1 flex flex-col p-4 md:p-8 space-y-4 min-h-0 h-[80%]">
               
-              {/* النص (يأخذ المساحة العلوية فقط ويتكيف حجمه) */}
               <div className="flex-1 flex items-center justify-center min-h-0">
                  <h3 className="text-center text-[clamp(1.2rem,4vh,3rem)] leading-snug md:leading-tight font-black overflow-hidden break-words">
                    {activeQ.q}
                  </h3>
               </div>
               
-              {/* أزرار الخيارات (تأخذ المساحة السفلية بالكامل وتتمدد) */}
               <div className="flex-[2] grid grid-cols-1 md:grid-cols-2 gap-3 min-h-0 pb-2">
                 {activeQ.opts.map((o, i) => (
                   <button key={i} onClick={() => submitAnswer(o)} className="w-full h-full min-h-0 bg-slate-800/60 hover:bg-blue-700 rounded-[1rem] md:rounded-[2rem] border-2 border-white/10 transition-all flex items-center justify-center text-center px-2 text-[clamp(1rem,3vh,2.2rem)] font-bold active:scale-95 leading-snug overflow-hidden">
@@ -340,7 +343,6 @@ export default function App() {
         </div>
       )}
 
-      {/* شاشة الفوز بالجولة */}
       {view === 'ROUND_OVER' && (
         <div className="fixed inset-0 w-screen h-[100dvh] bg-[#020617] z-[200] flex flex-col items-center justify-center p-6 animate-in zoom-in overflow-hidden text-center">
           <Zap className={`w-[20vh] h-[20vh] mb-6 ${roundWinner === 'P1' ? 'text-emerald-400' : 'text-rose-400'} animate-pulse`} />
@@ -349,7 +351,6 @@ export default function App() {
         </div>
       )}
 
-      {/* شاشة الفوز النهائي */}
       {view === 'MATCH_OVER' && (
         <div className="fixed inset-0 w-screen h-[100dvh] bg-[#020617] z-[300] flex flex-col items-center justify-center p-6 animate-in zoom-in overflow-hidden text-center">
           <Trophy className="w-[25vh] h-[25vh] text-yellow-400 drop-shadow-[0_0_100px_rgba(234,179,8,0.4)] mb-8" />
@@ -363,3 +364,4 @@ export default function App() {
     </div>
   );
 }
+
