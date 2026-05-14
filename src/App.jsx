@@ -53,17 +53,17 @@ const CSS_STYLES = `
   .input-field:focus { border-color: #3b82f6; background: rgba(30, 41, 59, 1); }
 
   .win-text-huge { font-size: clamp(2rem, 8vw, 8rem); font-weight: 900; }
-  .btn-match { font-size: clamp(1.2rem, 3.5vw, 1.2rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
+  .btn-match { font-size: clamp(1rem, 3vw, 1.5rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
   
-  /* ========== التعديل هنا (تكبير الخط) ========== */
+  /* ========== التعديل الجذري هنا ========== */
   .hex-text { 
-    font-size: clamp(1.2rem, 3.5vmin, 2rem); /* تم زيادة الحجم هنا */
-    font-weight: 800; 
+    font-size: 38px; /* حجم ثابت بوحدات SVG ليقوم المتصفح بمطابقته مع حجم الخلية دائماً */
+    font-weight: 800; /* سُمك الخط (عريض) */
     fill: white;
     pointer-events: none;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
   }
-  /* ============================================== */
+  /* ======================================== */
 
   .hex-group { 
     transition: filter 0.2s ease-out; 
