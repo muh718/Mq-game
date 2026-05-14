@@ -55,15 +55,24 @@ const CSS_STYLES = `
   .win-text-huge { font-size: clamp(2rem, 8vw, 8rem); font-weight: 900; }
   .btn-match { font-size: clamp(1rem, 3vw, 1.5rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
   
-  /* ========== التعديل الجذري هنا ========== */
+  /* ========== التعديل الجذري للخطوط (جوال + كمبيوتر) ========== */
   .hex-text { 
-    font-size: 38px; /* حجم ثابت بوحدات SVG ليقوم المتصفح بمطابقته مع حجم الخلية دائماً */
-    font-weight: 800; /* سُمك الخط (عريض) */
+    font-weight: 800; 
     fill: white;
     pointer-events: none;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    /* الحجم الافتراضي (للجوال): يكون كبيراً ليملأ الخلية */
+    font-size: 32px; 
   }
-  /* ======================================== */
+
+  /* عندما تكون الشاشة أكبر من الجوال (آيباد وكمبيوتر) */
+  @media (min-width: 768px) {
+    .hex-text { 
+      /* الحجم للكمبيوتر: يكون أصغر بالنسبة للخلية حتى لا يبدو عملاقاً */
+      font-size: 22px; 
+    }
+  }
+  /* ============================================================== */
 
   .hex-group { 
     transition: filter 0.2s ease-out; 
