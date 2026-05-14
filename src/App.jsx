@@ -55,7 +55,7 @@ const CSS_STYLES = `
   .win-text-huge { font-size: clamp(2rem, 8vw, 8rem); font-weight: 900; }
   .btn-match { font-size: clamp(1rem, 3vw, 1.5rem); padding: 1rem 2rem; border-radius: 2rem; font-weight: 900; }
   
-  /* تم إزالة حجم الخط من هنا ليتم التحكم به من داخل الرسمة نفسها لضمان الدقة */
+  /* تم إزالة مقاس الخط من هنا ليتم التحكم به بذكاء من داخل الكود البرمجي */
   .hex-text { 
     fill: white;
     pointer-events: none;
@@ -95,6 +95,20 @@ export default function App() {
   const [turn, setTurn] = useState('P1');
   const [activeQ, setActiveQ] = useState(null);
   const [roundWinner, setRoundWinner] = useState(null);
+
+  // ميزة اكتشاف نوع الجهاز (جوال أو كمبيوتر) لضبط حجم الخط
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // التحقق من عرض الشاشة عند بدء التطبيق
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    // مراقبة تغيير حجم الشاشة
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
 
@@ -294,13 +308,13 @@ export default function App() {
                       <g key={c.id} className="hex-group" onClick={() => handleTileClick(c)}>
                         <polygon points={Array.from({length: 6}).map((_, i) => `${cx + HEX_RADIUS * Math.cos((Math.PI/180)*(60*i-30))},${cy + HEX_RADIUS * Math.sin((Math.PI/180)*(60*i-30))}`).join(' ')} fill={c.owner === 'P1' ? "#10b981" : c.owner === 'P2' ? "#ef4444" : "#1e293b"} stroke={c.owner ? "#ffffff" : "#475569"} strokeWidth="6" />
                         {!c.owner && (
-                           // التعديل الجذري هنا: وضعنا حجم الخط وسُمكه داخل الرسمة مباشرة ليلتصق بها ويكبر ويصغر معها
+                           // التعديل الذكي هنا: إذا كان جوال يكون الخط 40، إذا كمبيوتر يكون الخط 24
                           <text 
                              x={cx} y={cy} 
                              textAnchor="middle" 
                              dominantBaseline="central" 
                              className="hex-text"
-                             fontSize="38" 
+                             fontSize={isMobile ? "40" : "24"} 
                              fontWeight="900"
                           >
                             {c.label}
