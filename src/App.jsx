@@ -59,11 +59,12 @@ const CSS_STYLES = `
   @media (min-width: 768px) { .hex-text { font-size: 26px; } }
 `;
 
-// === المقاسات الأصلية التي تغلق الفراغات ===
+// === الهندسة السداسية المطورة (لزيادة العرض) ===
 const GRID_SIZE = 5;
 const HEX_RADIUS = 95; 
-const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS;
-const HEX_HEIGHT = 2 * HEX_RADIUS;
+const HEX_X_STRETCH = 1.15; // هذا هو معامل التمدد: 1.15 يعني زيادة العرض بنسبة 15%
+const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS * HEX_X_STRETCH; // العرض زاد
+const HEX_HEIGHT = 2 * HEX_RADIUS; // الارتفاع ثابت كما هو
 const VERT_DIST = HEX_HEIGHT * 0.75;
 const VB_WIDTH = (GRID_SIZE * HEX_WIDTH) + (HEX_WIDTH / 2);
 const VB_HEIGHT = ((GRID_SIZE - 1) * VERT_DIST) + HEX_HEIGHT;
@@ -135,7 +136,7 @@ export default function App() {
     <div className="w-screen h-screen flex flex-col bg-[#020617] overflow-hidden" dir="rtl">
       <style>{CSS_STYLES}</style>
 
-      {/* 1. شاشة الدخول الفخمة */}
+      {/* 1. شاشة الدخول */}
       {view === 'START' && (
         <div className="flex-1 flex flex-col items-center justify-center p-4 w-full h-full relative">
           <div className="text-center space-y-4 mb-10 z-10">
@@ -210,7 +211,7 @@ export default function App() {
                       style={{ maxHeight: '100%', maxWidth: '100%' }}
                       preserveAspectRatio="xMidYMid meet"
                   >
-                      {/* === السر هنا: إعادة المقاسات الأصلية التي تغلق الفراغات === */}
+                      {/* الأطراف الملونة */}
                       <g className="opacity-60 pointer-events-none">
                           <rect x={0} y={-40} width={VB_WIDTH} height={120} fill={roundConfig.bg.vSide} rx="30" />
                           <rect x={0} y={VB_HEIGHT - 80} width={VB_WIDTH} height={120} fill={roundConfig.bg.vSide} rx="30" />
@@ -218,7 +219,7 @@ export default function App() {
                           <rect x={VB_WIDTH - 80} y={0} width={120} height={VB_HEIGHT} fill={roundConfig.bg.hSide} rx="30" />
                       </g>
 
-                      {/* الخلايا */}
+                      {/* الخلايا - تم تطبيق معامل التمدد HEX_X_STRETCH في حساب النقاط هنا */}
                       <g>
                       {grid.map(c => {
                           const xOff = (c.r % 2 === 0) ? 0 : (HEX_WIDTH / 2);
@@ -230,7 +231,7 @@ export default function App() {
                                  className="cursor-pointer hover:brightness-125 transition-all duration-200"
                                  onClick={() => handleTileClick(c)}
                                  style={{ pointerEvents: 'all' }}
-                                 points={Array.from({length: 6}).map((_, i) => `${cx + HEX_RADIUS * Math.cos((Math.PI/180)*(60*i-30))},${cy + HEX_RADIUS * Math.sin((Math.PI/180)*(60*i-30))}`).join(' ')} 
+                                 points={Array.from({length: 6}).map((_, i) => `${cx + (HEX_RADIUS * Math.cos((Math.PI/180)*(60*i-30)) * HEX_X_STRETCH)},${cy + HEX_RADIUS * Math.sin((Math.PI/180)*(60*i-30))}`).join(' ')} 
                                  fill={c.owner === 'P1' ? "#10b981" : c.owner === 'P2' ? "#ef4444" : "#1e293b"} 
                                  stroke="#475569" 
                                  strokeWidth="5" 
