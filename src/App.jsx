@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { LogOut } from 'lucide-react';
+import { Trophy, LogOut, ChevronRight } from 'lucide-react';
 
 const QUESTIONS_DATABASE = [
   { id: "isl_1", topic: "إسلاميات", q: "من أول من ركب الخيل من الأنبياء؟", a: ["إسماعيل عليه السلام", "إبراهيم", "سليمان", "صالح"] },
@@ -17,14 +17,18 @@ const CSS_STYLES = `
   
   body, html { 
     font-family: 'Tajawal', sans-serif; 
+    margin: 0; padding: 0;
+    background-color: #020617; color: white;
+    user-select: none;
     overflow: hidden !important; 
+    width: 100vw; height: 100dvh; 
   }
 
   .classic-title { font-family: 'Amiri', serif; }
   
   .glass-box {
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(20px);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(15px);
     border: 1px solid rgba(255,255,255,0.1);
   }
 
@@ -39,14 +43,14 @@ const CSS_STYLES = `
     font-size: 1.2rem;
     font-weight: 700;
     outline: none;
-    transition: all 0.3s;
+    transition: border-color 0.3s;
   }
-  .input-field:focus { border-color: #3b82f6; background: rgba(30, 41, 59, 1); }
+  .input-field:focus { border-color: #3b82f6; }
 
   .hex-text { 
     font-weight: 900; 
     fill: white;
-    pointer-events: none !important; /* هذا يمنع النص من سرقة ضغطة الماوس */
+    pointer-events: none !important; 
     filter: drop-shadow(0 2px 4px rgba(0,0,0,1));
     font-family: 'Tajawal', sans-serif;
   }
@@ -55,8 +59,9 @@ const CSS_STYLES = `
   @media (min-width: 768px) { .hex-text { font-size: 26px; } }
 `;
 
+// === المقاسات الأصلية التي تغلق الفراغات ===
 const GRID_SIZE = 5;
-const HEX_RADIUS = 90; 
+const HEX_RADIUS = 95; 
 const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS;
 const HEX_HEIGHT = 2 * HEX_RADIUS;
 const VERT_DIST = HEX_HEIGHT * 0.75;
@@ -67,6 +72,7 @@ const VB_PADDING = 120;
 export default function App() {
   const [view, setView] = useState('START'); 
   const [pNames, setPNames] = useState({ p1: '', p2: '' });
+  const [matchRounds, setMatchRounds] = useState(3);
   const [currentRound, setCurrentRound] = useState(1);
   const [grid, setGrid] = useState([]);
   const [turn, setTurn] = useState('P1');
@@ -83,8 +89,13 @@ export default function App() {
     };
   }, [currentRound]);
 
+  const handleGoToRounds = () => {
+    if (pNames.p1 && pNames.p2) {
+      setView('ROUNDS');
+    }
+  };
+
   const handleStartGame = () => {
-    if (!pNames.p1 || !pNames.p2) return;
     const newGrid = [];
     const topicsList = shuffle([...TOPICS, ...TOPICS, ...TOPICS, ...TOPICS]); 
     let idx = 0;
@@ -121,10 +132,10 @@ export default function App() {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-[#020617] text-white overflow-hidden" dir="rtl">
+    <div className="w-screen h-screen flex flex-col bg-[#020617] overflow-hidden" dir="rtl">
       <style>{CSS_STYLES}</style>
 
-      {/* ==================== شاشة الدخول الفخمة ==================== */}
+      {/* 1. شاشة الدخول الفخمة */}
       {view === 'START' && (
         <div className="flex-1 flex flex-col items-center justify-center p-4 w-full h-full relative">
           <div className="text-center space-y-4 mb-10 z-10">
@@ -135,29 +146,55 @@ export default function App() {
               محمد القرني
             </p>
           </div>
-          
           <div className="glass-box p-8 md:p-12 rounded-[2rem] w-full max-w-xl flex flex-col gap-6 z-10 shadow-2xl">
             <input type="text" placeholder="اسم المتسابق الأول" className="input-field" value={pNames.p1} onChange={e => setPNames({...pNames, p1: e.target.value})} />
             <input type="text" placeholder="اسم المتسابق الثاني" className="input-field" value={pNames.p2} onChange={e => setPNames({...pNames, p2: e.target.value})} />
-            <button onClick={handleStartGame} disabled={!pNames.p1 || !pNames.p2} className="w-full bg-blue-600 hover:bg-blue-500 py-4 mt-2 rounded-[1rem] font-black text-[clamp(1.2rem,4vw,2rem)] active:scale-95 transition-all shadow-lg disabled:opacity-50">
-              ابدأ التحدي
+            <button onClick={handleGoToRounds} disabled={!pNames.p1 || !pNames.p2} className="w-full bg-blue-600 hover:bg-blue-500 py-4 mt-2 rounded-[1rem] font-black text-[clamp(1.2rem,4vw,2rem)] active:scale-95 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2">
+              التالي <ChevronRight className="rotate-180" />
             </button>
           </div>
         </div>
       )}
 
-      {/* ==================== شاشة اللعب ==================== */}
+      {/* 2. شاشة الجولات */}
+      {view === 'ROUNDS' && (
+        <div className="flex-1 flex flex-col items-center justify-center p-4 w-full h-full animate-in fade-in duration-300">
+          <Trophy size={100} className="text-yellow-500 mb-6 drop-shadow-[0_0_20px_rgba(234,179,8,0.4)]" />
+          <h2 className="text-3xl md:text-5xl font-black text-white classic-title mb-10 text-center">اختر طول المسابقة</h2>
+          <div className="grid grid-cols-2 gap-4 w-full max-w-lg mb-10">
+            {[1, 3, 5, 7].map(num => (
+              <button
+                key={num}
+                onClick={() => setMatchRounds(num)}
+                className={`flex flex-col items-center justify-center p-8 rounded-3xl border-2 transition-all duration-200 ${
+                  matchRounds === num
+                    ? 'border-blue-500 bg-blue-900/40 shadow-[0_0_25px_rgba(59,130,246,0.4)] scale-105'
+                    : 'border-white/10 bg-slate-800/50 hover:bg-slate-700/50'
+                }`}
+              >
+                <span className="text-6xl font-black text-white mb-2 leading-none">{num}</span>
+                <span className="text-slate-400 font-bold text-lg">جولات فوز</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={handleStartGame} className="w-full max-w-lg bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black text-2xl active:scale-95 transition-all shadow-xl">
+            بدء التحدي الآن
+          </button>
+        </div>
+      )}
+
+      {/* 3. شاشة اللعب */}
       {view === 'GAME' && (
         <div className="flex-1 flex flex-col w-full h-full overflow-hidden relative">
           
-          {/* الهيدر */}
           <header className="h-[80px] shrink-0 p-2 md:px-6 glass-box flex justify-between items-center z-20 border-b border-white/10">
             <div className={`flex-1 h-full max-w-[200px] px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P1' ? 'bg-emerald-500/30 border-emerald-500 scale-105' : 'opacity-40 border-transparent'}`}>
               <span className="text-[10px] md:text-sm font-black opacity-80">{roundConfig.P1.label}</span>
               <div className="text-sm md:text-xl font-black truncate w-full text-center">{pNames.p1}</div>
             </div>
-            <div className="shrink-0 px-2 text-center">
-               <div className="classic-title text-xl md:text-3xl whitespace-nowrap text-blue-400">الجولة {currentRound}</div>
+            <div className="shrink-0 px-2 text-center flex flex-col items-center">
+               <div className="classic-title text-xl md:text-3xl whitespace-nowrap text-blue-400 leading-none">الجولة {currentRound}</div>
+               <span className="text-[10px] md:text-xs text-slate-400 font-bold">من {matchRounds} جولات</span>
             </div>
             <div className={`flex-1 h-full max-w-[200px] px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P2' ? 'bg-rose-500/30 border-rose-500 scale-105' : 'opacity-40 border-transparent'}`}>
               <span className="text-[10px] md:text-sm font-black opacity-80">{roundConfig.P2.label}</span>
@@ -165,7 +202,6 @@ export default function App() {
             </div>
           </header>
 
-          {/* مساحة اللعب - تم إجبارها على التوسيط وعدم القص */}
           <main className="flex-1 relative w-full h-full bg-[#010409]">
              <div className="absolute inset-0 flex items-center justify-center p-4">
                  <svg 
@@ -174,15 +210,15 @@ export default function App() {
                       style={{ maxHeight: '100%', maxWidth: '100%' }}
                       preserveAspectRatio="xMidYMid meet"
                   >
-                      {/* الأطراف الملونة (pointer-events-none تمنع إعاقة الضغط) */}
-                      <g className="opacity-50 pointer-events-none">
+                      {/* === السر هنا: إعادة المقاسات الأصلية التي تغلق الفراغات === */}
+                      <g className="opacity-60 pointer-events-none">
                           <rect x={0} y={-40} width={VB_WIDTH} height={120} fill={roundConfig.bg.vSide} rx="30" />
                           <rect x={0} y={VB_HEIGHT - 80} width={VB_WIDTH} height={120} fill={roundConfig.bg.vSide} rx="30" />
                           <rect x={-40} y={0} width={120} height={VB_HEIGHT} fill={roundConfig.bg.hSide} rx="30" />
                           <rect x={VB_WIDTH - 80} y={0} width={120} height={VB_HEIGHT} fill={roundConfig.bg.hSide} rx="30" />
                       </g>
 
-                      {/* الخلايا السداسية */}
+                      {/* الخلايا */}
                       <g>
                       {grid.map(c => {
                           const xOff = (c.r % 2 === 0) ? 0 : (HEX_WIDTH / 2);
@@ -190,7 +226,6 @@ export default function App() {
                           const cy = (c.r * VERT_DIST) + (HEX_HEIGHT / 2);
                           return (
                           <g key={c.id}>
-                              {/* هنا نضع أمر الضغط على الشكل نفسه */}
                               <polygon 
                                  className="cursor-pointer hover:brightness-125 transition-all duration-200"
                                  onClick={() => handleTileClick(c)}
@@ -213,7 +248,6 @@ export default function App() {
              </div>
           </main>
           
-          {/* الفوتر */}
           <footer className="h-[60px] shrink-0 flex items-center justify-center z-20 glass-box border-t border-white/10 relative">
              <button onClick={() => window.location.reload()} className="px-6 py-2 rounded-full text-slate-300 text-sm font-bold border border-white/10 bg-white/5 hover:bg-white/10 transition flex items-center gap-2">
                <LogOut size={16}/> إنهاء المسابقة
@@ -222,8 +256,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ==================== النافذة المنبثقة للسؤال (المودال) ==================== */}
-      {/* تم إعادة تفعيل الكلاسات التي تجعلها عائمة فوق الشاشة بالكامل */}
+      {/* المودال الخاص بالسؤال */}
       {activeQ && (
         <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/95 flex items-center justify-center p-4 backdrop-blur-md">
           <div className="glass-box border-2 flex flex-col w-full max-w-4xl rounded-[2rem] p-6 md:p-12 text-center space-y-8" style={{ borderColor: turn === 'P1' ? '#10b981' : '#ef4444' }}>
