@@ -1,13 +1,46 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy, LogOut, Zap, ChevronRight } from 'lucide-react';
-// تأكد من وجود ملف questionsData.js بجانب هذا الملف
-import { QUESTIONS_DATABASE } from './questionsData'; 
+
+// ==========================================
+// بنك الأسئلة (مدمج هنا لضمان عمله 100% على Vercel)
+// ==========================================
+const QUESTIONS_DATABASE = [
+  // إسلاميات
+  { id: "isl_1", topic: "إسلاميات", q: "من أول من ركب الخيل من الأنبياء؟", a: ["إسماعيل عليه السلام", "إبراهيم", "سليمان", "صالح"] },
+  { id: "isl_2", topic: "إسلاميات", q: "من أول من سمى القرآن بالمصحف؟", a: ["أبو بكر الصديق", "عمر بن الخطاب", "عثمان", "علي"] },
+  { id: "isl_3", topic: "إسلاميات", q: "أول فدائية في الإسلام هي؟", a: ["أسماء بنت أبي بكر", "سمية بنت خياط", "خديجة", "فاطمة"] },
+  // تاريخ
+  { id: "his_1", topic: "تاريخ", q: "أول رئيس للولايات المتحدة الأمريكية هو؟", a: ["جورج واشنطن", "لينكولن", "روزفلت", "كينيدي"] },
+  { id: "his_2", topic: "تاريخ", q: "القائد الفاطمي الذي بنى مدينة القاهرة؟", a: ["جوهر الصقلي", "صلاح الدين", "بيبرس", "قطز"] },
+  // جغرافيا
+  { id: "geo_1", topic: "جغرافيا", q: "ما هو أعرض أنهار العالم؟", a: ["الأمازون", "النيل", "الميسيسيبي", "الدانوب"] },
+  { id: "geo_2", topic: "جغرافيا", q: "ما العاصمة الوحيدة التي تطل على بحر قزوين؟", a: ["باكو", "طهران", "موسكو", "عشق آباد"] },
+  // علوم
+  { id: "sci_1", topic: "علوم", q: "من هو مكتشف الدورة الدموية الصغرى؟", a: ["ابن النفيس", "ابن سينا", "الرازي", "البيروني"] },
+  { id: "sci_2", topic: "علوم", q: "ما أقرب كوكب إلى الأرض؟", a: ["الزهرة", "المريخ", "عطارد", "المشتري"] },
+  // عامة
+  { id: "gen_1", topic: "عامة", q: "ما هو الشيء الذي يسمع بلا أذن ويتكلم بلا لسان؟", a: ["الهاتف", "التلفاز", "المذياع", "الصدى"] },
+  { id: "gen_2", topic: "عامة", q: "شيء كلما أخذنا منه ازداد وكبر؟", a: ["الحفرة", "العمر", "البئر", "المال"] },
+  // أدب وفن ورياضة
+  { id: "lit_1", topic: "أدب", q: "من صاحب كتاب البخلاء؟", a: ["الجاحظ", "ابن المقفع", "المتنبي", "الأصمعي"] },
+  { id: "art_1", topic: "فن", q: "من رسم لوحة الموناليزا؟", a: ["دافنشي", "بيكاسو", "دالي", "فان جوخ"] },
+  { id: "spo_1", topic: "رياضة", q: "في أي دولة نشأت رياضة التايكوندو؟", a: ["كوريا", "اليابان", "الصين", "تايلاند"] }
+];
 
 const TOPICS = ['إسلاميات', 'جغرافيا', 'تاريخ', 'علوم', 'أدب', 'فن', 'رياضة', 'عامة'];
 
 // ==========================================
-// التنسيقات والتحسينات البصرية
+// إعدادات الشبكة السداسية
 // ==========================================
+const GRID_SIZE = 5;
+const HEX_RADIUS = 95; 
+const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS;
+const HEX_HEIGHT = 2 * HEX_RADIUS;
+const VERT_DIST = HEX_HEIGHT * 0.75;
+const VB_WIDTH = (GRID_SIZE * HEX_WIDTH) + (HEX_WIDTH / 2);
+const VB_HEIGHT = ((GRID_SIZE - 1) * VERT_DIST) + HEX_HEIGHT;
+const VB_PADDING = 120; // مساحة كافية للأطراف الملونة لمنع القص
+
 const CSS_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@700&display=swap');
   
@@ -51,7 +84,7 @@ const CSS_STYLES = `
   }
   .input-field:focus { border-color: #3b82f6; }
 
-  /* تنسيق الخط بدون حجم ثابت (الحجم يتم تحديده بالبرمجة) */
+  /* الخط الذكي للكلمات */
   .hex-text { 
     font-weight: 900; 
     fill: white;
@@ -69,19 +102,6 @@ const CSS_STYLES = `
   }
 `;
 
-// ==========================================
-// إعدادات الشبكة السداسية
-// ==========================================
-const GRID_SIZE = 5;
-const HEX_RADIUS = 95; 
-const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS;
-const HEX_HEIGHT = 2 * HEX_RADIUS;
-const VERT_DIST = HEX_HEIGHT * 0.75;
-
-const VB_WIDTH = (GRID_SIZE * HEX_WIDTH) + (HEX_WIDTH / 2);
-const VB_HEIGHT = ((GRID_SIZE - 1) * VERT_DIST) + HEX_HEIGHT;
-const VB_PADDING = 120; // مساحة كافية للأطراف الملونة لمنع القص
-
 export default function App() {
   const [view, setView] = useState('START'); 
   const [pNames, setPNames] = useState({ p1: '', p2: '' });
@@ -91,7 +111,7 @@ export default function App() {
   const [activeQ, setActiveQ] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // مستشعر الشاشة لمعرفة إذا كان المستخدم على جوال أو كمبيوتر
+  // مستشعر الشاشة لضبط حجم الخط
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -131,12 +151,13 @@ export default function App() {
 
   const handleTileClick = (tile) => {
     if (tile.owner) return;
-    // التأكد من وجود الأسئلة لتجنب الأخطاء
-    let possibleQs = QUESTIONS_DATABASE ? QUESTIONS_DATABASE.filter(q => q.topic === tile.label) : [];
     
-    // سؤال افتراضي في حال لم يتم العثور على أسئلة في القسم
+    // البحث عن الأسئلة الخاصة بهذا القسم
+    let possibleQs = QUESTIONS_DATABASE.filter(q => q.topic === tile.label);
+    
+    // في حال عدم وجود سؤال في هذا القسم
     if (possibleQs.length === 0) {
-        possibleQs = [{ topic: tile.label, q: `سؤال تجريبي في قسم ${tile.label}`, a: ["خيار 1", "خيار 2", "خيار 3", "خيار 4"] }];
+        possibleQs = [{ topic: tile.label, q: `سؤال إضافي في قسم ${tile.label}؟`, a: ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"] }];
     }
 
     const selectedQ = possibleQs[Math.floor(Math.random() * possibleQs.length)];
@@ -184,7 +205,6 @@ export default function App() {
       {view === 'GAME' && (
         <div className="flex-1 flex flex-col w-full h-[100dvh] min-h-0 overflow-hidden">
           
-          {/* Header - Fixed height, won't shrink */}
           <header className="shrink-0 h-[12vh] min-h-[70px] max-h-[100px] p-2 glass-box flex justify-between items-center z-50 border-b border-white/10 gap-2">
             <div className={`flex-1 h-full px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P1' ? 'ring-2 ring-emerald-500/30 bg-emerald-500/20' : 'opacity-40 grayscale'}`} style={{ borderColor: '#10b981' }}>
               <span className="text-[clamp(0.6rem,1.5vh,0.9rem)] font-black opacity-70">{roundConfig.P1.label}</span>
@@ -199,7 +219,6 @@ export default function App() {
             </div>
           </header>
 
-          {/* Main Content Area - Secret to fixing the cutoff issue is "min-h-0" and "object-contain" */}
           <main className="flex-1 min-h-0 w-full flex items-center justify-center relative bg-[#010409] overflow-hidden p-2 md:p-6">
             <div className="w-full h-full flex items-center justify-center">
                 <svg 
@@ -228,7 +247,7 @@ export default function App() {
                                     textAnchor="middle" 
                                     dominantBaseline="central" 
                                     className="hex-text"
-                                    fontSize={isMobile ? "45" : "28"} // حجم كبير في الجوال وحجم مناسب للكمبيوتر
+                                    fontSize={isMobile ? "45" : "28"} 
                                 >
                                     {c.label}
                                 </text>
@@ -241,7 +260,6 @@ export default function App() {
             </div>
           </main>
           
-          {/* Footer - Fixed height */}
           <footer className="shrink-0 h-[8vh] min-h-[50px] max-h-[80px] flex items-center justify-center z-50">
              <button onClick={() => window.location.reload()} className="h-[70%] text-slate-400 text-xs font-bold px-6 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 transition flex items-center gap-2"><LogOut size={14}/> إنهاء المسابقة</button>
           </footer>
