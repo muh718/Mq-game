@@ -59,16 +59,19 @@ const CSS_STYLES = `
   @media (min-width: 768px) { .hex-text { font-size: 26px; } }
 `;
 
-// === الهندسة السداسية المطورة (لزيادة العرض) ===
+// === الهندسة السداسية (تمدد 30%) ===
 const GRID_SIZE = 5;
 const HEX_RADIUS = 95; 
-const HEX_X_STRETCH = 1.15; // هذا هو معامل التمدد: 1.15 يعني زيادة العرض بنسبة 15%
-const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS * HEX_X_STRETCH; // العرض زاد
-const HEX_HEIGHT = 2 * HEX_RADIUS; // الارتفاع ثابت كما هو
+const HEX_X_STRETCH = 1.30; 
+const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS * HEX_X_STRETCH; 
+const HEX_HEIGHT = 2 * HEX_RADIUS; 
 const VERT_DIST = HEX_HEIGHT * 0.75;
 const VB_WIDTH = (GRID_SIZE * HEX_WIDTH) + (HEX_WIDTH / 2);
 const VB_HEIGHT = ((GRID_SIZE - 1) * VERT_DIST) + HEX_HEIGHT;
-const VB_PADDING = 120; 
+
+// === قيم السُمك الجديدة (تم إنقاصها بنسبة 30%) ===
+const THICKNESS_X = 105; // كانت 150
+const THICKNESS_Y = 91;  // كانت 130
 
 export default function App() {
   const [view, setView] = useState('START'); 
@@ -136,7 +139,6 @@ export default function App() {
     <div className="w-screen h-screen flex flex-col bg-[#020617] overflow-hidden" dir="rtl">
       <style>{CSS_STYLES}</style>
 
-      {/* 1. شاشة الدخول */}
       {view === 'START' && (
         <div className="flex-1 flex flex-col items-center justify-center p-4 w-full h-full relative">
           <div className="text-center space-y-4 mb-10 z-10">
@@ -150,14 +152,13 @@ export default function App() {
           <div className="glass-box p-8 md:p-12 rounded-[2rem] w-full max-w-xl flex flex-col gap-6 z-10 shadow-2xl">
             <input type="text" placeholder="اسم المتسابق الأول" className="input-field" value={pNames.p1} onChange={e => setPNames({...pNames, p1: e.target.value})} />
             <input type="text" placeholder="اسم المتسابق الثاني" className="input-field" value={pNames.p2} onChange={e => setPNames({...pNames, p2: e.target.value})} />
-            <button onClick={handleGoToRounds} disabled={!pNames.p1 || !pNames.p2} className="w-full bg-blue-600 hover:bg-blue-500 py-4 mt-2 rounded-[1rem] font-black text-[clamp(1.2rem,4vw,2rem)] active:scale-95 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2">
+            <button onClick={handleGoToRounds} disabled={!pNames.p1 || !pNames.p2} className="w-full bg-blue-600 hover:bg-blue-500 py-4 mt-2 rounded-[1rem] font-black text-[clamp(1.2rem,4vw,2.5rem)] active:scale-95 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2">
               التالي <ChevronRight className="rotate-180" />
             </button>
           </div>
         </div>
       )}
 
-      {/* 2. شاشة الجولات */}
       {view === 'ROUNDS' && (
         <div className="flex-1 flex flex-col items-center justify-center p-4 w-full h-full animate-in fade-in duration-300">
           <Trophy size={100} className="text-yellow-500 mb-6 drop-shadow-[0_0_20px_rgba(234,179,8,0.4)]" />
@@ -184,7 +185,6 @@ export default function App() {
         </div>
       )}
 
-      {/* 3. شاشة اللعب */}
       {view === 'GAME' && (
         <div className="flex-1 flex flex-col w-full h-full overflow-hidden relative">
           
@@ -204,22 +204,32 @@ export default function App() {
           </header>
 
           <main className="flex-1 relative w-full h-full bg-[#010409]">
-             <div className="absolute inset-0 flex items-center justify-center p-4">
+             <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
                  <svg 
-                      viewBox={`${-VB_PADDING} ${-VB_PADDING} ${VB_WIDTH + VB_PADDING * 2} ${VB_HEIGHT + VB_PADDING * 2}`} 
+                      viewBox={`${-THICKNESS_X} ${-THICKNESS_Y} ${VB_WIDTH + (THICKNESS_X * 2)} ${VB_HEIGHT + (THICKNESS_Y * 2)}`} 
                       className="w-full h-full drop-shadow-2xl"
                       style={{ maxHeight: '100%', maxWidth: '100%' }}
                       preserveAspectRatio="xMidYMid meet"
                   >
-                      {/* الأطراف الملونة */}
-                      <g className="opacity-60 pointer-events-none">
-                          <rect x={0} y={-40} width={VB_WIDTH} height={120} fill={roundConfig.bg.vSide} rx="30" />
-                          <rect x={0} y={VB_HEIGHT - 80} width={VB_WIDTH} height={120} fill={roundConfig.bg.vSide} rx="30" />
-                          <rect x={-40} y={0} width={120} height={VB_HEIGHT} fill={roundConfig.bg.hSide} rx="30" />
-                          <rect x={VB_WIDTH - 80} y={0} width={120} height={VB_HEIGHT} fill={roundConfig.bg.hSide} rx="30" />
+                      {/* === القالب (اللوحة الصلبة المنقوصة 30%) === */}
+                      <defs>
+                          <clipPath id="refined-rounded-frame">
+                              <rect x={-THICKNESS_X} y={-THICKNESS_Y} width={VB_WIDTH + (THICKNESS_X * 2)} height={VB_HEIGHT + (THICKNESS_Y * 2)} rx="40" />
+                          </clipPath>
+                      </defs>
+
+                      {/* الخلفية الملونة */}
+                      <g className="opacity-80 pointer-events-none" clipPath="url(#refined-rounded-frame)">
+                          {/* 1. الجوانب (الحمراء) */}
+                          <rect x={-THICKNESS_X} y={-THICKNESS_Y} width={THICKNESS_X + (HEX_WIDTH/1.5)} height={VB_HEIGHT + (THICKNESS_Y*2)} fill={roundConfig.bg.hSide} />
+                          <rect x={VB_WIDTH - (HEX_WIDTH/1.5)} y={-THICKNESS_Y} width={THICKNESS_X + (HEX_WIDTH/1.5)} height={VB_HEIGHT + (THICKNESS_Y*2)} fill={roundConfig.bg.hSide} />
+                          
+                          {/* 2. الأعلى والأسفل (الخضراء) */}
+                          <rect x={-THICKNESS_X} y={-THICKNESS_Y} width={VB_WIDTH + (THICKNESS_X*2)} height={THICKNESS_Y + (HEX_HEIGHT*0.25)} fill={roundConfig.bg.vSide} />
+                          <rect x={-THICKNESS_X} y={VB_HEIGHT - (HEX_HEIGHT*0.25)} width={VB_WIDTH + (THICKNESS_X*2)} height={THICKNESS_Y + (HEX_HEIGHT*0.35)} fill={roundConfig.bg.vSide} />
                       </g>
 
-                      {/* الخلايا - تم تطبيق معامل التمدد HEX_X_STRETCH في حساب النقاط هنا */}
+                      {/* الخلايا السداسية */}
                       <g>
                       {grid.map(c => {
                           const xOff = (c.r % 2 === 0) ? 0 : (HEX_WIDTH / 2);
@@ -257,7 +267,6 @@ export default function App() {
         </div>
       )}
 
-      {/* المودال الخاص بالسؤال */}
       {activeQ && (
         <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/95 flex items-center justify-center p-4 backdrop-blur-md">
           <div className="glass-box border-2 flex flex-col w-full max-w-4xl rounded-[2rem] p-6 md:p-12 text-center space-y-8" style={{ borderColor: turn === 'P1' ? '#10b981' : '#ef4444' }}>
@@ -276,4 +285,3 @@ export default function App() {
     </div>
   );
 }
-
