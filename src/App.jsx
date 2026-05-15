@@ -2,45 +2,22 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy, LogOut, Zap, ChevronRight } from 'lucide-react';
 
 // ==========================================
-// بنك الأسئلة (مدمج هنا لضمان عمله 100% على Vercel)
+// بنك الأسئلة المدمج (لمنع أي أخطاء في Vercel)
 // ==========================================
 const QUESTIONS_DATABASE = [
-  // إسلاميات
   { id: "isl_1", topic: "إسلاميات", q: "من أول من ركب الخيل من الأنبياء؟", a: ["إسماعيل عليه السلام", "إبراهيم", "سليمان", "صالح"] },
-  { id: "isl_2", topic: "إسلاميات", q: "من أول من سمى القرآن بالمصحف؟", a: ["أبو بكر الصديق", "عمر بن الخطاب", "عثمان", "علي"] },
-  { id: "isl_3", topic: "إسلاميات", q: "أول فدائية في الإسلام هي؟", a: ["أسماء بنت أبي بكر", "سمية بنت خياط", "خديجة", "فاطمة"] },
-  // تاريخ
-  { id: "his_1", topic: "تاريخ", q: "أول رئيس للولايات المتحدة الأمريكية هو؟", a: ["جورج واشنطن", "لينكولن", "روزفلت", "كينيدي"] },
-  { id: "his_2", topic: "تاريخ", q: "القائد الفاطمي الذي بنى مدينة القاهرة؟", a: ["جوهر الصقلي", "صلاح الدين", "بيبرس", "قطز"] },
-  // جغرافيا
-  { id: "geo_1", topic: "جغرافيا", q: "ما هو أعرض أنهار العالم؟", a: ["الأمازون", "النيل", "الميسيسيبي", "الدانوب"] },
-  { id: "geo_2", topic: "جغرافيا", q: "ما العاصمة الوحيدة التي تطل على بحر قزوين؟", a: ["باكو", "طهران", "موسكو", "عشق آباد"] },
-  // علوم
-  { id: "sci_1", topic: "علوم", q: "من هو مكتشف الدورة الدموية الصغرى؟", a: ["ابن النفيس", "ابن سينا", "الرازي", "البيروني"] },
-  { id: "sci_2", topic: "علوم", q: "ما أقرب كوكب إلى الأرض؟", a: ["الزهرة", "المريخ", "عطارد", "المشتري"] },
-  // عامة
-  { id: "gen_1", topic: "عامة", q: "ما هو الشيء الذي يسمع بلا أذن ويتكلم بلا لسان؟", a: ["الهاتف", "التلفاز", "المذياع", "الصدى"] },
-  { id: "gen_2", topic: "عامة", q: "شيء كلما أخذنا منه ازداد وكبر؟", a: ["الحفرة", "العمر", "البئر", "المال"] },
-  // أدب وفن ورياضة
-  { id: "lit_1", topic: "أدب", q: "من صاحب كتاب البخلاء؟", a: ["الجاحظ", "ابن المقفع", "المتنبي", "الأصمعي"] },
-  { id: "art_1", topic: "فن", q: "من رسم لوحة الموناليزا؟", a: ["دافنشي", "بيكاسو", "دالي", "فان جوخ"] },
-  { id: "spo_1", topic: "رياضة", q: "في أي دولة نشأت رياضة التايكوندو؟", a: ["كوريا", "اليابان", "الصين", "تايلاند"] }
+  { id: "isl_2", topic: "إسلاميات", q: "أول فدائية في الإسلام هي؟", a: ["أسماء بنت أبي بكر", "سمية بنت خياط", "خديجة", "فاطمة"] },
+  { id: "geo_1", topic: "جغرافيا", q: "ما هو أعرض أنهار العالم؟", a: ["الأمازون", "النيل", "الفرات", "الدانوب"] },
+  { id: "his_1", topic: "تاريخ", q: "من القائد الفاطمي الذي بنى القاهرة؟", a: ["جوهر الصقلي", "صلاح الدين", "بيبرس", "قطز"] },
+  { id: "sci_1", topic: "علوم", q: "مكتشف الدورة الدموية الصغرى؟", a: ["ابن النفيس", "ابن سينا", "الرازي", "البيروني"] },
+  { id: "gen_1", topic: "عامة", q: "ما الشيء الذي اسمه على لونه؟", a: ["البرتقال", "البيضة", "الموز", "البطيخ"] }
 ];
 
 const TOPICS = ['إسلاميات', 'جغرافيا', 'تاريخ', 'علوم', 'أدب', 'فن', 'رياضة', 'عامة'];
 
 // ==========================================
-// إعدادات الشبكة السداسية
+// التنسيقات الفخمة (الأصلية)
 // ==========================================
-const GRID_SIZE = 5;
-const HEX_RADIUS = 95; 
-const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS;
-const HEX_HEIGHT = 2 * HEX_RADIUS;
-const VERT_DIST = HEX_HEIGHT * 0.75;
-const VB_WIDTH = (GRID_SIZE * HEX_WIDTH) + (HEX_WIDTH / 2);
-const VB_HEIGHT = ((GRID_SIZE - 1) * VERT_DIST) + HEX_HEIGHT;
-const VB_PADDING = 120; // مساحة كافية للأطراف الملونة لمنع القص
-
 const CSS_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@700&display=swap');
   
@@ -84,7 +61,7 @@ const CSS_STYLES = `
   }
   .input-field:focus { border-color: #3b82f6; }
 
-  /* الخط الذكي للكلمات */
+  /* الخط الذكي عبر الـ CSS بدلاً من الجافاسكريبت لضمان الاستقرار */
   .hex-text { 
     font-weight: 900; 
     fill: white;
@@ -92,6 +69,10 @@ const CSS_STYLES = `
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
     font-family: 'Tajawal', sans-serif;
   }
+  
+  /* الحجم ضخم للجوال ومناسب للكمبيوتر */
+  @media (max-width: 767px) { .hex-text { font-size: 38px; } }
+  @media (min-width: 768px) { .hex-text { font-size: 26px; } }
 
   .hex-group { 
     transition: filter 0.2s ease-out; 
@@ -102,6 +83,18 @@ const CSS_STYLES = `
   }
 `;
 
+// ==========================================
+// إعدادات الشبكة السداسية والقص
+// ==========================================
+const GRID_SIZE = 5;
+const HEX_RADIUS = 95; 
+const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS;
+const HEX_HEIGHT = 2 * HEX_RADIUS;
+const VERT_DIST = HEX_HEIGHT * 0.75;
+const VB_WIDTH = (GRID_SIZE * HEX_WIDTH) + (HEX_WIDTH / 2);
+const VB_HEIGHT = ((GRID_SIZE - 1) * VERT_DIST) + HEX_HEIGHT;
+const VB_PADDING = 120; // هامش يمنع القص ويعطي مساحة للأطراف
+
 export default function App() {
   const [view, setView] = useState('START'); 
   const [pNames, setPNames] = useState({ p1: '', p2: '' });
@@ -109,15 +102,6 @@ export default function App() {
   const [grid, setGrid] = useState([]);
   const [turn, setTurn] = useState('P1');
   const [activeQ, setActiveQ] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // مستشعر الشاشة لضبط حجم الخط
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
 
@@ -151,16 +135,11 @@ export default function App() {
 
   const handleTileClick = (tile) => {
     if (tile.owner) return;
-    
-    // البحث عن الأسئلة الخاصة بهذا القسم
-    let possibleQs = QUESTIONS_DATABASE.filter(q => q.topic === tile.label);
-    
-    // في حال عدم وجود سؤال في هذا القسم
-    if (possibleQs.length === 0) {
-        possibleQs = [{ topic: tile.label, q: `سؤال إضافي في قسم ${tile.label}؟`, a: ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"] }];
-    }
+    const possibleQs = QUESTIONS_DATABASE.filter(q => q.topic === tile.label);
+    const selectedQ = possibleQs.length > 0 
+        ? possibleQs[Math.floor(Math.random() * possibleQs.length)] 
+        : { topic: tile.label, q: `سؤال إضافي في قسم ${tile.label}؟`, a: ["الخيار 1", "الخيار 2", "الخيار 3", "الخيار 4"] };
 
-    const selectedQ = possibleQs[Math.floor(Math.random() * possibleQs.length)];
     setActiveQ({ 
         tile, 
         q: selectedQ.q, 
@@ -184,6 +163,9 @@ export default function App() {
     <div className="w-screen h-[100dvh] fixed inset-0 flex flex-col bg-[#020617] overflow-hidden" dir="rtl">
       <style>{CSS_STYLES}</style>
 
+      {/* ========================================== */}
+      {/* شاشة الدخول الأصلية الفخمة */}
+      {/* ========================================== */}
       {view === 'START' && (
         <div className="flex-1 w-full h-full flex flex-col items-center justify-center p-4 space-y-8 min-h-0 animate-in fade-in">
           <div className="text-center space-y-2 shrink-0">
@@ -202,18 +184,21 @@ export default function App() {
         </div>
       )}
 
+      {/* ========================================== */}
+      {/* شاشة اللعب والشبكة */}
+      {/* ========================================== */}
       {view === 'GAME' && (
         <div className="flex-1 flex flex-col w-full h-[100dvh] min-h-0 overflow-hidden">
           
-          <header className="shrink-0 h-[12vh] min-h-[70px] max-h-[100px] p-2 glass-box flex justify-between items-center z-50 border-b border-white/10 gap-2">
-            <div className={`flex-1 h-full px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P1' ? 'ring-2 ring-emerald-500/30 bg-emerald-500/20' : 'opacity-40 grayscale'}`} style={{ borderColor: '#10b981' }}>
+          <header className="shrink-0 h-[10vh] min-h-[60px] max-h-[100px] p-2 glass-box flex justify-between items-center z-50 border-b border-white/10 gap-2">
+            <div className={`flex-1 h-full px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P1' ? 'bg-emerald-500/20 border-emerald-500 scale-105' : 'opacity-40 border-transparent'}`}>
               <span className="text-[clamp(0.6rem,1.5vh,0.9rem)] font-black opacity-70">{roundConfig.P1.label}</span>
               <div className="text-[clamp(0.9rem,2.5vh,1.5rem)] font-black truncate w-full text-center">{pNames.p1}</div>
             </div>
             <div className="shrink-0 px-2 text-center">
                <div className="classic-title text-[clamp(1rem,3vh,2.5rem)] whitespace-nowrap leading-none">الجولة {currentRound}</div>
             </div>
-            <div className={`flex-1 h-full px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P2' ? 'ring-2 ring-rose-500/30 bg-rose-500/20' : 'opacity-40 grayscale'}`} style={{ borderColor: '#ef4444' }}>
+            <div className={`flex-1 h-full px-2 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${turn === 'P2' ? 'bg-rose-500/20 border-rose-500 scale-105' : 'opacity-40 border-transparent'}`}>
               <span className="text-[clamp(0.6rem,1.5vh,0.9rem)] font-black opacity-70">{roundConfig.P2.label}</span>
               <div className="text-[clamp(0.9rem,2.5vh,1.5rem)] font-black truncate w-full text-center">{pNames.p2}</div>
             </div>
@@ -242,13 +227,7 @@ export default function App() {
                         <g key={c.id} className="hex-group" onClick={() => handleTileClick(c)}>
                             <polygon points={Array.from({length: 6}).map((_, i) => `${cx + HEX_RADIUS * Math.cos((Math.PI/180)*(60*i-30))},${cy + HEX_RADIUS * Math.sin((Math.PI/180)*(60*i-30))}`).join(' ')} fill={c.owner === 'P1' ? "#10b981" : c.owner === 'P2' ? "#ef4444" : "#1e293b"} stroke="#475569" strokeWidth="6" />
                             {!c.owner && (
-                                <text 
-                                    x={cx} y={cy} 
-                                    textAnchor="middle" 
-                                    dominantBaseline="central" 
-                                    className="hex-text"
-                                    fontSize={isMobile ? "45" : "28"} 
-                                >
+                                <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" className="hex-text">
                                     {c.label}
                                 </text>
                             )}
@@ -266,6 +245,9 @@ export default function App() {
         </div>
       )}
 
+      {/* ========================================== */}
+      {/* مودال السؤال */}
+      {/* ========================================== */}
       {activeQ && (
         <div className="fixed inset-0 w-screen h-[100dvh] bg-black/98 z-[100] flex items-center justify-center p-3 md:p-6 backdrop-blur-3xl">
           <div className="glass-box border-2 flex flex-col w-full max-w-4xl rounded-[2rem] p-6 md:p-10 text-center space-y-6" style={{ borderColor: turn === 'P1' ? '#10b981' : '#ef4444' }}>
